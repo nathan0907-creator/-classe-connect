@@ -1,0 +1,75 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "users": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid && !data.exists()",
+        ".validate": "newData.hasChildren(['displayName', 'joinedAt', 'isAdmin'])",
+        "displayName": {".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40"},
+        "joinedAt": {".validate": "newData.isNumber() && newData.val() <= now"},
+        "isAdmin": {".validate": "newData.val() === false"},
+        "$other": {".validate": false}
+      }
+    },
+    "messages": {
+      ".read": "auth != null && root.child('users').child(auth.uid).exists()",
+      ".indexOn": ["ts"],
+      "$id": {
+        ".write": "auth != null && root.child('users').child(auth.uid).exists() && !data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['from', 'displayName', 'text', 'ts'])",
+        "from": {".validate": "newData.val() === auth.uid"},
+        "displayName": {".validate": "newData.val() === root.child('users').child(auth.uid).child('displayName').val()"},
+        "text": {".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 4000"},
+        "ts": {".validate": "newData.isNumber() && newData.val() <= now"},
+        "$other": {".validate": false}
+      }
+    },
+    "news": {
+      ".read": "auth != null && root.child('users').child(auth.uid).exists()",
+      ".indexOn": ["ts"],
+      "$id": {
+        ".write": "auth != null && root.child('users').child(auth.uid).exists() && !data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['from', 'displayName', 'title', 'content', 'ts'])",
+        "from": {".validate": "newData.val() === auth.uid"},
+        "displayName": {".validate": "newData.val() === root.child('users').child(auth.uid).child('displayName').val()"},
+        "title": {".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120"},
+        "content": {".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 10000"},
+        "ts": {".validate": "newData.isNumber() && newData.val() <= now"},
+        "$other": {".validate": false}
+      }
+    },
+    "council": {
+      ".read": "auth != null && root.child('users').child(auth.uid).exists()",
+      ".indexOn": ["ts"],
+      "$id": {
+        ".write": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true && !data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['from', 'displayName', 'title', 'content', 'ts'])",
+        "from": {".validate": "newData.val() === auth.uid"},
+        "displayName": {".validate": "newData.val() === root.child('users').child(auth.uid).child('displayName').val()"},
+        "title": {".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120"},
+        "content": {".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 10000"},
+        "ts": {".validate": "newData.isNumber() && newData.val() <= now"},
+        "$other": {".validate": false}
+      }
+    },
+    "requests": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true",
+      ".indexOn": ["ts"],
+      "$id": {
+        ".write": "auth != null && root.child('users').child(auth.uid).exists() && !data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['from', 'displayName', 'text', 'ts', 'status'])",
+        "from": {".validate": "newData.val() === auth.uid"},
+        "displayName": {".validate": "newData.val() === root.child('users').child(auth.uid).child('displayName').val()"},
+        "text": {".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 4000"},
+        "ts": {".validate": "newData.isNumber() && newData.val() <= now"},
+        "status": {
+          ".write": "auth != null && data.exists() && root.child('users').child(auth.uid).child('isAdmin').val() === true && newData.val() === 'lu'",
+          ".validate": "(!data.exists() && newData.val() === 'nouveau') || (data.exists() && newData.val() === 'lu' && root.child('users').child(auth.uid).child('isAdmin').val() === true)"
+        },
+        "$other": {".validate": false}
+      }
+    }
+  }
+}

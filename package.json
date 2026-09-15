@@ -1,0 +1,18 @@
+{
+  "name": "classe-connect",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ClasseConnect — La classe, ensemble.",
+  "scripts": {
+    "start": "node server.cjs",
+    "test": "node --test tests/app.test.cjs",
+    "test:rules": "firebase emulators:exec --only database --project demo-classe-connect \"node --test tests/rules.test.cjs\"",
+    "check": "node --check public/app.js"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase": "^12.19.0",
+    "firebase-tools": "^15.30.0",
+    "jsdom": "^30.0.1"
+  }
+}

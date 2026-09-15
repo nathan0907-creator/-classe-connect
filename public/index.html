@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClasseConnect — La classe, ensemble.</title><meta name="description" content="Le point de rencontre de ta classe : discussions, actualités et échanges avec ton délégué."><meta name="theme-color" content="#6355df">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css"><link rel="stylesheet" href="design.css">
+</head>
+<body>
+
+<div id="toast-container" role="status" aria-live="polite"></div>
+
+<div id="auth-screen">
+  <div class="aurora"><span class="a1"></span><span class="a2"></span><span class="a3"></span></div>
+<div class="auth-story"><a class="story-brand" href="./"><span class="brand-mark">c<span>c</span></span>classe<span>connect</span><i>LE COIN DE TA CLASSE</i></a><div class="story-content"><div class="eyebrow"><span></span> MOINS DE MESSAGES PERDUS, PLUS DE LIENS</div><h1>Ta classe.<br> Vos idées.<br><em>Un même endroit.</em></h1><p>Les discussions qui avancent, les infos qui comptent.<br>Un espace pour s’entraider et faire vivre la classe.</p><div class="story-tags"><span>↗ Simple à rejoindre</span><span>✦ Fait pour vous</span></div><div class="conversation-art" aria-hidden="true"><div class="art-head"><span class="tiny-logo">#</span><b>La classe, ensemble</b><span class="art-dot"></span></div><div class="art-message"><span class="art-avatar">L</span><div><small>Léa <i>14:32</i></small><p>On révise ensemble demain ?</p></div></div><div class="art-message reply"><div><small>Toi <i>14:33</i></small><p>Oui ! Je ramène mes fiches ✨</p></div><span class="art-avatar">T</span></div><div class="art-reaction">💜 <b>L’entraide commence ici.</b></div><span class="art-spark">✳</span><span class="art-sticker">Tous dans<br><b>la même classe.</b></span></div></div><div class="story-foot">Un petit espace. De grandes idées.<span>CLASSECONNECT © 2026</span></div></div><div class="auth-side"><div class="auth-top">Ton espace de classe <span>✦</span></div><div class="auth-card"><div class="welcome-icon">↗</div><div class="eyebrow auth-kicker">ON EST MIEUX ENSEMBLE</div><h2 id="auth-heading">Heureux de te revoir.</h2>
+    
+    <p class="auth-sub" id="auth-sub">Connecte-toi pour rejoindre la discussion de la classe.</p>
+
+    <div id="login-form" class="auth-form">
+      <div class="field"><label for="login-email">Adresse e-mail</label><input id="login-email" type="email" autocomplete="username"></div>
+      <div class="field"><label for="login-password">Mot de passe</label><input id="login-password" type="password" autocomplete="current-password"></div>
+      <button class="forgot-link" id="show-forgot">Mot de passe oublié ?</button>
+      <div class="auth-error" role="alert" id="login-error"></div>
+      <button class="btn-primary" id="login-btn">Se connecter</button>
+      <div class="auth-switch">Pas encore de compte ? <button id="show-signup">Créer un compte</button></div>
+    </div>
+
+    <div id="signup-form" class="auth-form" style="display:none;">
+      <div class="field"><label for="signup-name">Ton prénom / pseudo</label><input id="signup-name" type="text" autocomplete="name"></div>
+      <div class="field"><label for="signup-email">Adresse e-mail</label><input id="signup-email" type="email" autocomplete="username"></div>
+      <div class="field"><label for="signup-password">Mot de passe</label><input id="signup-password" type="password" autocomplete="new-password"></div>
+      <div class="auth-error" role="alert" id="signup-error"></div>
+      <button class="btn-primary" id="signup-btn">Créer mon compte</button>
+      <div class="auth-switch">Déjà inscrit·e ? <button id="show-login">Se connecter</button></div>
+    </div>
+
+    <div id="forgot-form" class="auth-form" style="display:none;">
+      <div class="field"><label for="forgot-email">Adresse e-mail</label><input id="forgot-email" type="email" autocomplete="username"></div>
+      <div class="auth-error" role="alert" id="forgot-error"></div>
+      <div class="auth-ok" id="forgot-ok"></div>
+      <button class="btn-primary" id="forgot-btn">Recevoir un lien de réinitialisation</button>
+      <div class="auth-switch"><button id="show-login-from-forgot">Retour à la connexion</button></div>
+    </div>
+  </div><div class="auth-bottom"><button id="preview-btn">Découvrir l’espace <span>→</span></button><p>Un aperçu, sans créer de compte.</p></div></div></div>
+<div id="app">
+  <div class="sidebar">
+    <div class="aurora" style="opacity:.5;"><span class="a1" style="width:60%;height:60%;"></span><span class="a2" style="width:55%;height:55%;"></span></div>
+    <div class="brand"><span class="brand-mark">c<span>c</span></span><span class="logo-word">Classe</span><span class="logo-dot" style="font-family:'Fraunces',serif;">·</span><span class="logo-word">Connect</span></div>
+    <div class="sidebar-caption">VOTRE ESPACE</div><nav class="nav-wrap" id="nav-wrap" aria-label="Navigation principale">
+      <div id="nav-indicator"></div>
+      <button class="nav-item active" data-panel="chat" title="chat"><span class="ic">💬</span><span class="label">Discussion</span></button>
+      <button class="nav-item" data-panel="news" title="news"><span class="ic">📣</span><span class="label">Actualités</span></button>
+      <button class="nav-item" data-panel="council" title="council"><span class="ic">🏛️</span><span class="label">Conseils de classe</span></button>
+      <button class="nav-item" data-panel="requests" title="requests"><span class="ic">📮</span><span class="label">Demande au délégué</span><span class="nav-badge" id="requests-badge" style="display:none;"></span></button>
+      <button class="nav-item" data-panel="members" title="members"><span class="ic">👥</span><span class="label">Membres</span></button>
+    </nav><div class="sidebar-note"><span>✧</span><b>Une classe, une équipe.</b><p>Une question, une idée ?<br>La discussion commence ici.</p></div><div class="sidebar-footer">
+      <div class="avatar" id="my-avatar"></div>
+      <div class="whoami"><div class="name" id="my-name"></div><button class="out" id="logout-btn">Se déconnecter</button></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="workspace-bar"><span><b>Mon espace</b><span class="slash">/</span> Ma classe</span><span id="connection-status" role="status">Connexion…</span></div><div class="topbar"><span class="section-kicker">ON GARDE LE LIEN</span><h1 id="panel-title">Discussion de classe</h1><p id="panel-sub">Un seul fil, ouvert à tout le monde.</p></div>
+
+    <div class="panel active" id="panel-chat">
+      <div class="chat-welcome"><span class="welcome-symbol">✳</span><div><b>Les bonnes idées commencent par un message.</b><p>Un coup de main, une question ou juste un bonjour ? À toi de jouer.</p></div><span class="welcome-decoration">↗</span></div><div class="chat-tools"><span><span class="channel-hash">#</span> général <small>· Toute la classe</small></span><label class="search-box"><span>⌕</span><input id="message-search" type="search" placeholder="Rechercher un message" aria-label="Rechercher un message"></label></div><div id="chat-messages" role="log" aria-live="polite" aria-label="Messages de la classe"></div>
+      <div class="chat-input-bar"><button id="emoji-btn" class="emoji-btn" aria-label="Ajouter un sourire">☺</button><textarea id="chat-input" rows="1" maxlength="4000" aria-label="Ton message" placeholder="Un message pour la classe…"></textarea><button class="send-btn" id="chat-send" aria-label="Envoyer le message">↗</button></div><div class="composer-hint"><span>Entrée pour envoyer · Maj + Entrée pour une nouvelle ligne</span><span id="char-count">0 / 4 000</span></div>
+    </div>
+
+    <div class="panel" id="panel-news">
+      <div class="scroll-body">
+        <div class="form-card"><input id="news-title" type="text" placeholder="Titre de l'annonce"><textarea id="news-content" placeholder="Détails..."></textarea><button id="news-publish">Publier</button></div>
+        <div id="news-list"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-council">
+      <div class="scroll-body"><div id="council-form-slot"></div><div id="council-list"></div></div>
+    </div>
+
+    <div class="panel" id="panel-requests">
+      <div class="scroll-body"><div id="requests-form-slot"></div><div id="requests-list"></div></div>
+    </div>
+
+    <div class="panel" id="panel-members">
+      <div class="scroll-body"><div class="members-grid" id="members-grid"></div></div>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script src="app.js"></script>
+</body></html>
