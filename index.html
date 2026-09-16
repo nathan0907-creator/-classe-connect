@@ -723,7 +723,7 @@ function renderPrivate(){
   const messages=Object.values(privateThreads[activePrivateUid]?.messages||{}).sort((a,b)=>(a.ts||0)-(b.ts||0));
   const name=messages.find(m=>m.from===activePrivateUid)?.displayName||'Élève';
   document.getElementById('private-title').textContent=currentUser.isAdmin?(activePrivateUid?'Conversation avec '+name:'Choisis une conversation'):'Ton échange avec le délégué';
-  box.innerHTML=messages.length?messages.map(m=>'<article class="private-message '+(m.from===currentUser.uid?'mine':'')+'"><div class="meta">'+escapeHtml(m.displayName)+' · '+fmtDate(m.ts)+' '+fmtTime(m.ts)+'</div>'+(m.kind==='proposal'?'<span class="proposal-tag">Proposition · à examiner</span>':'')+'<p>'+escapeHtml(m.text)+'</p></article>').join(''):'<div class="empty-state">Ton premier message commencera une conversation privée. Tu retrouveras ici les réponses du délégué.</div>';
+  box.innerHTML=messages.length?messages.map(m=>'<article class="private-message '+(m.from===currentUser.uid?'mine':'')+'"><div class="meta">'+escapeHtml(m.displayName)+' · '+fmtDate(m.ts)+' '+fmtTime(m.ts)+'</div>'+(m.kind==='proposal'?'<span class="proposal-tag">Proposition · à examiner</span>':'')+'<p>'+escapeHtml(m.text)+'</p></article>').join(''):'<div class="empty-state">'+(currentUser.isAdmin?'Les conversations apparaîtront ici dès qu’un élève t’écrira. Sélectionne un élève pour lire ses messages et lui répondre.':'Ton premier message commencera une conversation privée. Tu retrouveras ici les réponses du délégué.')+'</div>';
   document.getElementById('private-form').hidden=!activePrivateUid;
   document.getElementById('private-send').textContent=currentUser.isAdmin?'Répondre à cet élève':'Envoyer au délégué';
   box.scrollTop=box.scrollHeight;
