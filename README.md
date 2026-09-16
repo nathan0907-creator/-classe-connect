@@ -4,7 +4,9 @@ Un espace de classe en français : discussion en temps réel, actualités, compt
 
 ## Publication sur GitHub Pages
 
-Le site se trouve dans `public/`. Le workflow `.github/workflows/pages.yml` publie ce dossier à chaque modification sur `main`.
+Le site se trouve dans `public/`. Le workflow `.github/workflows/pages.yml` publie ce dossier à chaque modification sur `main`. Une version HTML autonome à la racine permet aussi l’hébergement avec **Deploy from a branch → main → /(root)** : ce mode ouvre également l’application, et non le README.
+
+Après une modification de `public/`, exécuter `node export.cjs` et inclure `index.html` dans le commit. Cela synchronise l’entrée à la racine et génère le fichier téléchargeable `classe-connect-ameliore.html`.
 
 1. Ouvrir [Settings → Pages](https://github.com/nathan0907-creator/-classe-connect/settings/pages).
 2. Dans **Build and deployment → Source**, choisir **GitHub Actions**.

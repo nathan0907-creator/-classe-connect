@@ -5,4 +5,6 @@ let html=read('public/index.html');
 html=html.replace('<link rel="stylesheet" href="base.css"><link rel="stylesheet" href="design.css">',()=>'<style>'+read('public/base.css')+'\n'+read('public/design.css')+'</style>');
 html=html.replace('<script src="app.js"></script>',()=>'<script>'+read('public/app.js')+'</script>');
 fs.writeFileSync(path.join(__dirname,'classe-connect-ameliore.html'),html);
+// The root entry also supports Pages configured as main / (root).
+fs.writeFileSync(path.join(__dirname,'index.html'),html);
 console.log('Version HTML autonome créée.');
