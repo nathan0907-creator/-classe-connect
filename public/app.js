@@ -48,7 +48,7 @@ function friendlyAuthError(code){
     'auth/weak-password':"Mot de passe trop court (6 caractères min).",
     'auth/too-many-requests':"Trop de tentatives, réessaie plus tard.",
     'auth/network-request-failed':"Connexion interrompue. Réessaie dans un instant.",
-    'auth/operation-not-allowed':"La connexion par e-mail doit être activée par le responsable de la classe.",
+    'auth/operation-not-allowed':"Cette méthode de connexion doit être activée par le responsable de la classe.",
     'PERMISSION_DENIED':"Ton profil n’a pas pu être enregistré. Le responsable doit vérifier les accès."
   };
   return map[code] || "Une erreur est survenue.";
@@ -68,6 +68,7 @@ function listen(query, callback) {
   subscriptions.push(query);
 }
 function detachListeners(){
+  resetPrivate();
   sessionVersion++;
   sendPending=false;
   document.getElementById('chat-send').disabled=false;
@@ -84,17 +85,44 @@ function detachListeners(){
 
 // ---------- AUTH VIEW SWITCHING ----------
 function showAuthView(view){
+  document.getElementById('guest-form').style.display=view==='guest'?'block':'none';
+  document.getElementById('show-guest').style.display=view==='guest'?'none':'flex';
   document.getElementById('login-form').style.display = view==='login' ? 'block' : 'none';
   document.getElementById('signup-form').style.display = view==='signup' ? 'block' : 'none';
   document.getElementById('forgot-form').style.display = view==='forgot' ? 'block' : 'none';
   const subs = {
+    guest:"Un pseudo suffit pour participer aux échanges.",
     login:"Connecte-toi pour rejoindre la discussion de la classe.",
     signup:"Choisis un pseudo, un e-mail et un mot de passe.",
     forgot:"On t'envoie un lien par e-mail pour choisir un nouveau mot de passe."
   };
   document.getElementById('auth-sub').textContent = subs[view];
-  ['login-error','signup-error','forgot-error','forgot-ok'].forEach(id => document.getElementById(id).textContent = '');
+  ['login-error','signup-error','forgot-error','forgot-ok','guest-error'].forEach(id => document.getElementById(id).textContent = '');
 }
+document.getElementById('show-guest').onclick=()=>showAuthView('guest');
+document.getElementById('guest-to-email').onclick=()=>showAuthView('login');
+document.getElementById('guest-btn').onclick=withLoading(document.getElementById('guest-btn'),async()=>{
+  const displayName=document.getElementById('guest-name').value.trim();
+  const error=document.getElementById('guest-error');error.textContent='';
+  if(!displayName || displayName.length>40){error.textContent='Choisis un pseudo de 1 à 40 caractères.';return;}
+  if(registrationPromise){error.textContent='Une connexion est déjà en cours.';return;}
+  try{
+    registrationPromise=(async()=>{
+      const cred=await auth.signInAnonymously();
+      const existing=await db.ref('users/'+cred.user.uid).once('value');
+      // A retry must keep an existing profile rather than overwrite it.
+      if(!existing.exists()){
+        await cred.user.updateProfile({displayName});
+        await db.ref('users/'+cred.user.uid).set({displayName,joinedAt:firebase.database.ServerValue.TIMESTAMP,isAdmin:false});
+      }
+    })();
+    await registrationPromise;
+    registrationPromise=null;
+    if(currentUser?.uid!==auth.currentUser?.uid)await handleAuthState(auth.currentUser);
+    showToast('Bienvenue ! Ton accès sans e-mail est lié à ce navigateur.');
+  }catch(e){error.textContent=friendlyAuthError(e.code);}
+  finally{registrationPromise=null;}
+});
 document.getElementById('show-signup').onclick = () => showAuthView('signup');
 document.getElementById('show-login').onclick = () => showAuthView('login');
 document.getElementById('show-forgot').onclick = () => showAuthView('forgot');
@@ -109,6 +137,7 @@ document.getElementById('signup-btn').onclick = withLoading(document.getElementB
   errEl.textContent = '';
   if (displayName.length>40){errEl.textContent='Ton prénom doit faire 40 caractères maximum.';return;}
   if (!displayName || !email || !password){ errEl.textContent = 'Remplis tous les champs.'; return; }
+  if(registrationPromise){errEl.textContent='Une connexion est déjà en cours.';return;}
   try{
     
     registrationPromise = (async () => {
@@ -148,6 +177,7 @@ document.getElementById('forgot-btn').onclick = withLoading(document.getElementB
 // ---------- LOGOUT ----------
 document.getElementById('logout-btn').onclick = async () => {
   if(demoMode){demoMode=false;currentUser=null;detachListeners();appEl.classList.remove('active');authScreen.style.display='flex';document.getElementById('preview-banner')?.remove();return;}
+  if(auth.currentUser?.isAnonymous && !window.confirm('Ton compte est sans e-mail. En te déconnectant, tu perdras l’accès à cette identité : ton pseudo seul ne permet pas de la retrouver. Veux-tu te déconnecter ?'))return;
   try{await auth.signOut();}catch{showToast('Déconnexion impossible. Réessaie.');}
 };
 
@@ -155,7 +185,7 @@ document.getElementById('logout-btn').onclick = async () => {
 const authScreen = document.getElementById('auth-screen');
 const appEl = document.getElementById('app');
 
-if(auth) auth.onAuthStateChanged(async (user) => {
+async function handleAuthState(user) {
   if(demoMode && !user) return;
   detachListeners();
   const version=sessionVersion;
@@ -179,7 +209,7 @@ if(auth) auth.onAuthStateChanged(async (user) => {
     renderRequestsForm();
     attachListeners();
     document.querySelector('[data-panel="chat"]').click();
-    document.querySelectorAll('input[type="password"]').forEach(input=>input.value='');
+    document.querySelectorAll('input[autocomplete="current-password"],input[autocomplete="new-password"]').forEach(input=>input.value='');
     requestAnimationFrame(() => positionNavIndicator(document.querySelector('.nav-item.active')));
   } else {
     currentUser = null;
@@ -187,7 +217,8 @@ if(auth) auth.onAuthStateChanged(async (user) => {
     authScreen.style.display = 'flex';
   }
   }catch(e){if(version!==sessionVersion)return;currentUser=null;appEl.classList.remove('active');authScreen.style.display='flex';document.getElementById('login-error').textContent='Impossible de charger ton profil. Vérifie la connexion ou contacte le responsable de la classe, puis reconnecte-toi.';}
-});
+}
+if(auth) auth.onAuthStateChanged(handleAuthState);
 
 // ---------- NAV ----------
 function positionNavIndicator(btn){
@@ -212,6 +243,7 @@ document.querySelectorAll('.nav-item').forEach(btn => {
       news: ['Actualités', "Annonces et infos importantes pour la classe."],
       council: ['Conseils de classe', "Comptes-rendus et décisions officielles."],
       requests: ['Demande au délégué', currentUser && currentUser.isAdmin ? "Messages reçus des élèves." : "Envoie un message privé au/à la délégué·e."],
+      schedule: ['Emploi du temps', 'Ta semaine, et tes propositions au délégué.'],
       members: ['Membres', 'Tous les élèves inscrits sur ClasseConnect.']
     };
     document.getElementById('panel-title').textContent = titles[btn.dataset.panel][0];
@@ -237,25 +269,6 @@ function renderCouncilForm(){
     slot.innerHTML = `<div class="info-banner">🔒 Seul·e le/la délégué·e de classe peut publier ici. Tu peux consulter les informations ci-dessous.</div>`;
   }
 }
-function renderRequestsForm(){
-  const slot = document.getElementById('requests-form-slot');
-  if (currentUser.isAdmin){
-    slot.innerHTML = `<div class="info-banner">📬 Ces messages sont envoyés directement par les élèves, seul·e toi peux les voir.</div>`;
-  } else {
-    slot.innerHTML = `<div class="form-card"><textarea id="request-text" maxlength="4000" aria-label="Ta demande au délégué" placeholder="Écris ta demande ou ta question pour le/la délégué·e..."></textarea><button id="request-send">Envoyer</button></div>`;
-    const btn = document.getElementById('request-send');
-    btn.onclick = withLoading(btn, async () => {
-      const t = document.getElementById('request-text');
-      if (!t.value.trim()){showToast('Écris ta demande avant de l’envoyer.');return;}
-      if(t.value.length>4000){showToast('Ta demande est trop longue (4 000 caractères maximum).');return;}
-      await db.ref('requests').push({ from: currentUser.uid, displayName: currentUser.displayName, text:t.value.trim(), ts: firebase.database.ServerValue.TIMESTAMP, status:'nouveau' });
-      t.value='';
-      showToast('Demande envoyée au/à la délégué·e 📮');
-    });
-    document.getElementById('requests-list').innerHTML = '<div class="empty-state"><span class="ee-icon">📮</span>Seul·e le/la délégué·e peut lire les demandes envoyées.</div>';
-  }
-}
-
 // ---------- REALTIME LISTENERS ----------
 const chatMessagesEl = document.getElementById('chat-messages');
 let knownMessageIds = new Set(), knownNewsIds = new Set(), knownCouncilIds = new Set(), knownRequestIds = new Set(), knownMemberKeys = new Set();
@@ -305,28 +318,7 @@ function attachListeners(){
     knownCouncilIds = new Set(items.map(n=>n.id));
   });
 
-  if (currentUser.isAdmin){
-    listen(db.ref('requests'), snap => {
-      const val = snap.val() || {};
-      const items = Object.entries(val).map(([id,r])=>({id,...r})).sort((a,b)=>(b.ts||0)-(a.ts||0));
-      const listEl = document.getElementById('requests-list');
-      const badge = document.getElementById('requests-badge');
-      const newCount = items.filter(r=>r.status==='nouveau').length;
-      badge.style.display = newCount>0 ? 'inline-block' : 'none';
-      badge.textContent = newCount;
-      listEl.innerHTML = items.length===0
-        ? '<div class="empty-state"><span class="ee-icon">📮</span>Aucune demande reçue pour l\u2019instant.</div>'
-        : items.map((r,i) => `<div class="request-card ${!knownRequestIds.has(r.id)?'enter':''}" style="animation-delay:${i*35}ms">
-            <div class="meta"><span>${escapeHtml(r.displayName)}, le ${fmtDate(r.ts)}</span><span class="status-pill ${r.status==='nouveau'?'new':'read'}">${r.status==='nouveau'?'Nouveau':'Lu'}</span></div>
-            <p>${escapeHtml(r.text)}</p>
-            ${r.status==='nouveau' ? `<button class="mark-read-btn" data-id="${r.id}">Marquer comme lue</button>` : ''}
-          </div>`).join('');
-      knownRequestIds = new Set(items.map(r=>r.id));
-      listEl.querySelectorAll('.mark-read-btn').forEach(btn => {
-        btn.onclick = withLoading(btn, () => db.ref('requests/'+btn.dataset.id+'/status').set('lu'));
-      });
-    });
-  }
+  attachPrivate();
 
   listen(db.ref('users'), snap => {
     const val = snap.val() || {};
@@ -424,7 +416,7 @@ document.querySelectorAll('.auth-form input[type="password"]').forEach(input=>{
   const button=document.createElement('button');button.type='button';button.className='password-toggle';button.textContent='Voir';button.setAttribute('aria-label','Afficher le mot de passe');
   button.onclick=()=>{const show=input.type==='password';input.type=show?'text':'password';button.textContent=show?'Masquer':'Voir';button.setAttribute('aria-label',show?'Masquer le mot de passe':'Afficher le mot de passe');button.setAttribute('aria-pressed',String(show));};wrap.append(button);
 });
-const authTitles={login:'Heureux de te revoir.',signup:'Ta place est ici.',forgot:'On retrouve ton accès.'};
+const authTitles={login:'Heureux de te revoir.',signup:'Ta place est ici.',forgot:'On retrouve ton accès.',guest:'Un pseudo. Et te voilà.'};
 const originalShowAuthView=showAuthView;
 showAuthView=function(view){originalShowAuthView(view);document.getElementById('auth-heading').textContent=authTitles[view];};
 document.querySelectorAll('.nav-item').forEach(btn=>{btn.setAttribute('aria-label',btn.querySelector('.label').textContent);btn.addEventListener('click',()=>document.querySelectorAll('.nav-item').forEach(item=>item.setAttribute('aria-current',item===btn?'page':'false')));});
@@ -436,3 +428,84 @@ else {statusEl.textContent='Service indisponible';document.getElementById('login
 document.querySelectorAll('input[id$="title"]').forEach(input=>input.maxLength=120);
 document.querySelectorAll('.form-card textarea').forEach(input=>{input.maxLength=10000;input.setAttribute('aria-label',input.placeholder);});
 document.querySelectorAll('.form-card input').forEach(input=>input.setAttribute('aria-label',input.placeholder));
+
+// Private threads: the student's uid is the stable conversation identifier.
+let privateThreads={}, activePrivateUid=null, privatePending=false;
+function resetPrivate(){privateThreads={};activePrivateUid=null;privatePending=false;document.getElementById('proposal-dialog')?.close();document.getElementById('proposal-form')?.reset();}
+function renderRequestsForm(){
+  activePrivateUid=currentUser.isAdmin?null:currentUser.uid;
+  document.getElementById('requests-form-slot').innerHTML='<div class="info-banner">🔒 Un échange privé entre l’élève concerné et le délégué. Les autres élèves n’y ont pas accès.</div>';
+  document.getElementById('requests-list').innerHTML='<div class="private-layout"><aside id="private-inbox" aria-label="Conversations privées"></aside><section class="private-thread"><h3 id="private-title">Ton échange avec le délégué</h3><div id="private-messages" aria-live="polite"></div><form id="private-form"><label for="private-input">Ton message privé</label><textarea id="private-input" maxlength="4000" placeholder="Une question, une idée, une proposition…" required></textarea><button class="btn-primary" id="private-send">Envoyer au délégué</button></form></section></div>';
+  document.getElementById('private-inbox').hidden=!currentUser.isAdmin;
+  document.getElementById('private-form').onsubmit=async e=>{e.preventDefault();const input=document.getElementById('private-input'),text=input.value.trim(),uid=activePrivateUid,version=sessionVersion;if(await sendPrivate(uid,text,'message')&&version===sessionVersion&&uid===activePrivateUid&&input.value.trim()===text)input.value='';};
+  renderPrivate();renderTimetable();
+}
+function attachPrivate(){
+  const path=currentUser.isAdmin?'conversations':'conversations/'+currentUser.uid;
+  listen(db.ref(path),snap=>{privateThreads=currentUser.isAdmin?(snap.val()||{}):{[currentUser.uid]:snap.val()||{}};renderPrivate();});
+}
+function renderPrivate(){
+  const box=document.getElementById('private-messages');if(!box||!currentUser)return;
+  if(currentUser.isAdmin){
+    const entries=Object.entries(privateThreads).filter(([,t])=>t.messages).sort((a,b)=>Math.max(...Object.values(b[1].messages).map(m=>m.ts||0))-Math.max(...Object.values(a[1].messages).map(m=>m.ts||0)));
+    if(!activePrivateUid&&entries.length)activePrivateUid=entries[0][0];
+    const inbox=document.getElementById('private-inbox');inbox.replaceChildren();
+    entries.forEach(([uid,t])=>{const messages=Object.values(t.messages),name=messages.find(m=>m.from===uid)?.displayName||'Élève';const button=document.createElement('button');button.className='thread-choice'+(uid===activePrivateUid?' selected':'');button.textContent=name+' · '+messages.length+' message(s)';button.onclick=()=>{if(privatePending)return;activePrivateUid=uid;document.getElementById('private-input').value='';renderPrivate();};inbox.append(button);});
+    if(!entries.length)inbox.textContent='Aucune conversation reçue.';
+  }
+  const messages=Object.values(privateThreads[activePrivateUid]?.messages||{}).sort((a,b)=>(a.ts||0)-(b.ts||0));
+  const name=messages.find(m=>m.from===activePrivateUid)?.displayName||'Élève';
+  document.getElementById('private-title').textContent=currentUser.isAdmin?(activePrivateUid?'Conversation avec '+name:'Choisis une conversation'):'Ton échange avec le délégué';
+  box.innerHTML=messages.length?messages.map(m=>'<article class="private-message '+(m.from===currentUser.uid?'mine':'')+'"><div class="meta">'+escapeHtml(m.displayName)+' · '+fmtDate(m.ts)+' '+fmtTime(m.ts)+'</div>'+(m.kind==='proposal'?'<span class="proposal-tag">Proposition · à examiner</span>':'')+'<p>'+escapeHtml(m.text)+'</p></article>').join(''):'<div class="empty-state">Ton premier message commencera une conversation privée. Tu retrouveras ici les réponses du délégué.</div>';
+  document.getElementById('private-form').hidden=!activePrivateUid;
+  document.getElementById('private-send').textContent=currentUser.isAdmin?'Répondre à cet élève':'Envoyer au délégué';
+  box.scrollTop=box.scrollHeight;
+}
+async function sendPrivate(uid,text,kind){
+  if(!currentUser||!uid||privatePending||!text||text.length>4000)return false;
+  if(!demoMode&&!connected){showToast('Tu es hors ligne. Ton brouillon est conservé.');return false;}
+  const version=sessionVersion;privatePending=true;const btn=document.getElementById('private-send');if(btn)btn.disabled=true;
+  const message={from:currentUser.uid,displayName:currentUser.displayName,text,kind,ts:demoMode?Date.now():firebase.database.ServerValue.TIMESTAMP};
+  try{
+    if(demoMode){privateThreads[uid]??={messages:{}};privateThreads[uid].messages['demo'+Date.now()]=message;renderPrivate();}
+    else await db.ref('conversations/'+uid+'/messages').push(message);
+    return version===sessionVersion;
+  }catch{if(version===sessionVersion)showToast('Message privé non envoyé. Ton texte est conservé.');return false;}
+  finally{if(version===sessionVersion){privatePending=false;if(btn)btn.disabled=false;}}
+}
+// Q1/Q2 are the alternating periods printed on the supplied timetable.
+const schoolDays=['Lundi','Mardi','Mercredi','Jeudi','Vendredi'];
+const subjects={math:['Mathématiques','TKACZYK C.','B 14'],fr:['Français','VENANT I.','C 30'],eps:['EPS','LEBRUN D.',''],pc:['Physique-chimie','DIVE F.','BS 17'],en:['Anglais LV1','IDRI S.','A 05'],es:['Espagnol LV2','MAKHLOUF S.','A 07'],latin:['LCA Latin','VERITE I.','C 23'],tech:['Technologie','FRIKHA A.','TECHNO 1'],hg:['Histoire-géographie','GOHIER T.','A 06'],emc:['Enseignement moral et civique','GOHIER T.','A 06'],svt:['Sciences de la vie et de la Terre','HISBERGUE J.','BS 18'],art:['Arts plastiques','FROMENT I.','C 25'],mus:['Éducation musicale','CATTEVILLE P.','MUSIQUE'],vie:['Vie de classe','CATTEVILLE P.',''],aide:['Accompagnement aux devoirs','Selon le groupe et les semaines','Salle à confirmer']};
+const lessons=[
+ [0,'08:00','10:00','eps'],[0,'10:00','11:00','math'],[0,'11:00','12:00','pc'],[0,'12:30','13:30','aide'],[0,'13:30','14:30','fr'],[0,'14:30','15:30','fr'],[0,'15:30','16:30','vie','Q1'],[0,'15:30','16:30','en','Q2'],
+ [1,'08:00','09:00','math','Q1'],[1,'08:00','09:00','latin','Q2'],[1,'09:00','10:00','latin','Q1'],[1,'09:00','10:00','tech','Q2'],[1,'10:00','11:00','es','Q1'],[1,'10:00','11:00','fr','Q2'],[1,'11:00','12:00','en'],[1,'12:30','13:30','aide'],[1,'13:30','14:30','emc','Q1'],[1,'13:30','14:30','svt','Q2'],[1,'14:30','15:30','fr','Q1'],[1,'14:30','15:30','en','Q2'],[1,'15:30','16:30','hg'],
+ [2,'08:00','09:00','es'],[2,'09:00','10:00','tech','Q1'],[2,'09:00','10:00','fr','Q2'],[2,'10:00','11:00','math'],[2,'11:00','12:00','latin'],
+ [3,'08:00','10:00','eps','Q1'],[3,'08:00','09:00','math','Q2'],[3,'09:00','10:00','hg','Q2'],[3,'10:00','11:00','mus'],[3,'11:00','12:00','en'],[3,'12:30','13:30','aide'],[3,'16:30','17:30','aide'],
+ [4,'08:00','09:00','fr'],[4,'09:00','10:00','es'],[4,'10:00','11:00','hg'],[4,'11:00','12:00','art','Q1'],[4,'11:00','12:00','pc','Q2'],[4,'12:30','13:30','aide'],[4,'13:30','14:30','math'],[4,'14:30','15:30','tech','Q1'],[4,'14:30','15:30','art','Q2'],[4,'15:30','16:30','svt']
+].map(([day,start,end,subject,period],id)=>({id,day,start,end,subject,period:period||'Q1 + Q2'}));
+function lessonLabel(l){return schoolDays[l.day]+' '+l.start+'–'+l.end+' · '+subjects[l.subject][0]+' · '+l.period;}
+function renderTimetable(){
+  const period=document.getElementById('schedule-period').value;
+  document.getElementById('schedule-grid').innerHTML=schoolDays.map((day,i)=>'<section class="schedule-day"><h3>'+day+'</h3>'+lessons.filter(l=>l.day===i&&(period==='all'||l.period.includes(period))).map(l=>'<button class="lesson lesson-'+l.subject+'" data-lesson="'+l.id+'"><span class="lesson-time">'+l.start+' — '+l.end+'<em>'+l.period+'</em></span><strong>'+subjects[l.subject][0]+'</strong><span>'+subjects[l.subject][1]+'</span><small>'+subjects[l.subject][2]+(l.subject==='aide'?' · selon semaines':'')+'</small></button>').join('')+'</section>').join('');
+  document.querySelectorAll('#schedule-grid [data-lesson]').forEach(b=>b.onclick=()=>openProposal(Number(b.dataset.lesson)));
+}
+function openProposal(id){
+  if(currentUser?.isAdmin){showToast('Les élèves t’envoient leurs propositions dans les conversations privées.');return;}
+  const form=document.getElementById('proposal-form');form.reset();form.dataset.lesson=id;
+  document.getElementById('proposal-course').textContent=lessonLabel(lessons[id]);
+  document.getElementById('proposal-other').innerHTML='<option value="">Choisir le second cours</option>'+lessons.filter(l=>l.id!==id).map(l=>'<option value="'+l.id+'">'+lessonLabel(l)+'</option>').join('');
+  document.getElementById('swap-field').hidden=true;document.getElementById('proposal-other').required=false;
+  document.getElementById('proposal-dialog').showModal();
+}
+document.getElementById('schedule-period').onchange=renderTimetable;
+document.getElementById('proposal-close').onclick=()=>document.getElementById('proposal-dialog').close();
+document.getElementById('proposal-action').onchange=e=>{const swap=e.target.value==='Inverser deux cours';document.getElementById('swap-field').hidden=!swap;document.getElementById('proposal-other').required=swap;};
+document.getElementById('proposal-form').onsubmit=async e=>{
+  e.preventDefault();const form=e.currentTarget,button=document.getElementById('proposal-send');if(button.disabled||!currentUser||currentUser.isAdmin)return;
+  const lesson=lessons[Number(form.dataset.lesson)],action=document.getElementById('proposal-action').value,other=lessons[Number(document.getElementById('proposal-other').value)],reason=document.getElementById('proposal-reason').value.trim(),date=document.getElementById('proposal-date').value;
+  if(!reason||!date||(action==='Inverser deux cours'&&(!document.getElementById('proposal-other').value||other.id===lesson.id)))return;
+  if(new Date(date+'T12:00:00').getDay()!==lesson.day+1){showToast('La date doit correspondre au jour du cours sélectionné.');return;}
+  const text='Proposition : '+action+'\nCours : '+lessonLabel(lesson)+'\nDate concernée : '+date.split('-').reverse().join('/')+(action==='Inverser deux cours'?'\nAvec : '+lessonLabel(other):'')+'\nMotif / créneau souhaité : '+reason+'\n\nÀ examiner par le délégué. Le planning reste inchangé.';
+  button.disabled=true;const version=sessionVersion;
+  try{if(await sendPrivate(currentUser.uid,text,'proposal')&&version===sessionVersion){document.getElementById('proposal-dialog').close();document.querySelector('[data-panel="requests"]').click();showToast(demoMode?'Proposition de démonstration, non envoyée.':'Proposition envoyée dans ta conversation privée.');}}finally{button.disabled=false;}
+};

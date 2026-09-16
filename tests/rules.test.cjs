@@ -9,6 +9,28 @@ const db=uid=>uid?env.authenticatedContext(uid).database():env.unauthenticatedCo
 before(async()=>{env=await initializeTestEnvironment({projectId:'demo-classe-connect',database:{host:'127.0.0.1',port:9000,rules:fs.readFileSync(path.join(__dirname,'../database.rules.json'),'utf8')}});});
 beforeEach(async()=>{await env.clearDatabase();await env.withSecurityRulesDisabled(async ctx=>set(ref(ctx.database()),{users:{alice:profile('Alice'),bob:profile('Bob'),admin:profile('Délégué',true)}}));});
 after(async()=>{await env?.cleanup();});
+test('private conversations allow only their student and delegate, in both directions',async()=>{
+ const first={...message(),kind:'proposal'};
+ await assertSucceeds(set(ref(db('alice'),'conversations/alice/messages/first'),first));
+ await assertSucceeds(get(ref(db('alice'),'conversations/alice')));
+ await assertSucceeds(set(ref(db('admin'),'conversations/alice/messages/reply'),{...message('admin'),kind:'message'}));
+ await assertSucceeds(get(ref(db('admin'),'conversations')));
+ for(const target of ['conversations','conversations/alice','conversations/alice/messages/first'])await assertFails(get(ref(db('bob'),target)));
+ await assertFails(get(ref(db('alice'),'conversations')));
+ await assertFails(get(ref(db(),'conversations/alice')));
+ await assertFails(set(ref(db('bob'),'conversations/alice/messages/intrusion'),{from:'bob',displayName:'Bob',text:'Non',ts:1,kind:'message'}));
+ await assertFails(update(ref(db('alice'),'conversations/alice/messages/first'),{text:'Modification'}));
+ await assertFails(set(ref(db('alice'),'conversations/alice/messages/fake'),{...first,from:'admin'}));
+ await assertFails(set(ref(db('alice'),'conversations/alice/messages/status'),{...first,kind:'approved'}));
+});
+test('anonymous authenticated pupils have the same isolated private access',async()=>{
+ const guest=env.authenticatedContext('guest',{firebase:{sign_in_provider:'anonymous'}}).database();
+ await assertSucceeds(set(ref(guest,'users/guest'),profile('Sans e-mail')));
+ await assertSucceeds(set(ref(guest,'conversations/guest/messages/m'),{from:'guest',displayName:'Sans e-mail',text:'Bonjour',ts:1,kind:'message'}));
+ await assertSucceeds(get(ref(guest,'conversations/guest')));
+ await assertFails(get(ref(db('alice'),'conversations/guest')));
+ await assertFails(get(ref(guest,'conversations/alice')));
+});
 test('anonymous users cannot read class data',async()=>{for(const p of ['users','messages','news','council','requests'])await assertFails(get(ref(db(),p)));});
 test('profile creation accepts ordinary members and rejects self promotion',async()=>{
  await assertSucceeds(set(ref(db('new'),'users/new'),profile('Nouvel élève')));

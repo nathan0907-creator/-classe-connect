@@ -1,6 +1,6 @@
 # ClasseConnect
 
-Un espace de classe en français : discussion en temps réel, actualités, comptes-rendus du conseil, demandes privées au délégué et liste des membres.
+Un espace de classe en français : discussion en temps réel, actualités, comptes-rendus du conseil, conversations privées avec le délégué, emploi du temps Q1/Q2 et liste des membres.
 
 ## Publication sur GitHub Pages
 
@@ -21,9 +21,9 @@ La configuration publique du fichier d’origine a été conservée (`e-pacifiqu
 
 Le propriétaire du projet doit effectuer les opérations suivantes dans la [console Firebase](https://console.firebase.google.com/project/e-pacifique/overview) :
 
-1. **Authentication → Sign-in method** : activer **Email/Password**.
+1. **Authentication → Sign-in method** : activer **Email/Password** et **Anonymous** (accès par pseudo sans e-mail).
 2. **Authentication → Settings → Authorized domains** : ajouter `nathan0907-creator.github.io`. Pour les essais locaux, ajouter `localhost` et `127.0.0.1` si nécessaire.
-3. **Realtime Database → Rules** : après vérification des éventuels autres usages de cette base, publier le contenu de `database.rules.json`. Le fichier couvre les cinq collections de ClasseConnect ; il refuse par défaut l’accès aux autres chemins. S’il existe d’autres applications dans ce projet Firebase, fusionner leurs règles au lieu de les remplacer.
+3. **Realtime Database → Rules** : après vérification des éventuels autres usages de cette base, publier le contenu de `database.rules.json`. Le fichier couvre les collections de ClasseConnect, dont les conversations privées ; il refuse par défaut l’accès aux autres chemins. S’il existe d’autres applications dans ce projet Firebase, fusionner leurs règles au lieu de les remplacer.
 4. Créer un compte depuis le site. Dans **Realtime Database → Data → users → UID du délégué**, attribuer `isAdmin: true` uniquement à la personne choisie. Cette opération se fait depuis la console administrateur ; personne ne peut s’auto-attribuer ce rôle depuis le site avec les règles fournies.
 
 Avec une session CLI Firebase déjà autorisée, la commande suivante déploie ces règles :
@@ -39,12 +39,14 @@ Les utilisateurs existants restent en place. Les comptes créés depuis le site 
 - Les messages récents (300 maximum) se synchronisent en temps réel après connexion. La recherche porte sur ces messages chargés.
 - Entrée envoie ; Maj + Entrée ajoute une ligne. Le texte reste dans la page si l’envoi échoue. Aucun stockage persistant de brouillons n’est effectué.
 - Tous les membres inscrits peuvent lire la discussion et publier une actualité. Cette version représente une seule classe et ne comporte pas de code d’invitation.
-- Le délégué publie les comptes-rendus et lit les demandes privées. Un élève peut envoyer une demande ; il ne peut pas consulter les demandes dans cette version.
+- Le délégué publie les comptes-rendus. Chaque élève dispose d’un fil privé bidirectionnel avec le délégué, sous `conversations/UID/messages`. Seuls cet élève et les comptes explicitement désignés délégués peuvent le lire. Les anciens messages `requests` restent protégés mais ne sont plus utilisés par cette interface.
+- L’emploi du temps reprend le planning fourni avec filtres Q1/Q2. Les horaires d’accompagnement restent soumis aux groupes et semaines de l’établissement. Une proposition de déplacement, d’inversion ou d’annulation crée un message privé ; elle ne modifie jamais le planning.
+- Un compte sans e-mail utilise Firebase Anonymous Auth. Son accès est lié au navigateur : déconnexion ou suppression des données fait perdre cette identité. Aucun nom ou pseudo seul ne permet de récupérer le compte.
 - Le bouton **Découvrir l’espace** ouvre des données fictives séparées du service. Les essais de messages restent en mémoire dans cette page et disparaissent à son rechargement.
 - Déconnexion et changement de compte ferment les abonnements et effacent le contenu visible de la session précédente.
 - L’interface s’adapte au téléphone et respecte le réglage système de réduction des animations.
 
-Les règles ont été validées sur l’émulateur Firebase. Une validation de bout en bout sur le projet réel nécessite les accès Firebase du propriétaire et deux comptes de test : envoyer un message avec le premier, vérifier sa réception avec le second, puis vérifier qu’un élève ne peut pas consulter les demandes du délégué.
+Les règles ont été validées sur l’émulateur Firebase. Une validation de bout en bout sur le projet réel nécessite les accès Firebase du propriétaire et deux comptes de test : envoyer un message avec le premier, vérifier sa réception avec le second, puis vérifier qu’un autre élève ne peut pas consulter leur conversation privée.
 
 ## Développement local
 

@@ -17,6 +17,14 @@
 <div class="auth-story"><a class="story-brand" href="./"><span class="brand-mark">c<span>c</span></span>classe<span>connect</span><i>LE COIN DE TA CLASSE</i></a><div class="story-content"><div class="eyebrow"><span></span> MOINS DE MESSAGES PERDUS, PLUS DE LIENS</div><h1>Ta classe.<br> Vos idées.<br><em>Un même endroit.</em></h1><p>Les discussions qui avancent, les infos qui comptent.<br>Un espace pour s’entraider et faire vivre la classe.</p><div class="story-tags"><span>↗ Simple à rejoindre</span><span>✦ Fait pour vous</span></div></div><div class="story-foot">Un petit espace. De grandes idées.<span>CLASSECONNECT © 2026</span></div></div><div class="auth-side"><div class="auth-top">Ton espace de classe <span>✦</span></div><div class="auth-card"><div class="welcome-icon">↗</div><div class="eyebrow auth-kicker">ON EST MIEUX ENSEMBLE</div><h2 id="auth-heading">Heureux de te revoir.</h2>
     
     <p class="auth-sub" id="auth-sub">Connecte-toi pour rejoindre la discussion de la classe.</p>
+    <button id="show-guest" class="guest-choice">Continuer avec un pseudo <span>Sans adresse e-mail →</span></button>
+    <div id="guest-form" class="auth-form" style="display:none;">
+      <div class="field"><label for="guest-name">Ton prénom / pseudo</label><input id="guest-name" type="text" maxlength="40" autocomplete="nickname" placeholder="Comment veux-tu qu’on t’appelle ?"></div>
+      <p class="guest-note">Aucun e-mail nécessaire. Ton accès reste dans ce navigateur. Si tu te déconnectes ou effaces ses données, tu ne pourras pas retrouver ce compte avec ton pseudo seul.</p>
+      <div class="auth-error" role="alert" id="guest-error"></div>
+      <button class="btn-primary" id="guest-btn">Rejoindre la classe sans e-mail</button>
+      <div class="auth-switch"><button id="guest-to-email">Utiliser un compte avec e-mail</button></div>
+    </div>
 
     <div id="login-form" class="auth-form">
       <div class="field"><label for="login-email">Adresse e-mail</label><input id="login-email" type="email" autocomplete="username"></div>
@@ -51,6 +59,7 @@
     <div class="sidebar-caption">VOTRE ESPACE</div><nav class="nav-wrap" id="nav-wrap" aria-label="Navigation principale">
       <div id="nav-indicator"></div>
       <button class="nav-item active" data-panel="chat" title="chat"><span class="ic">💬</span><span class="label">Discussion</span></button>
+      <button class="nav-item" data-panel="schedule" title="Emploi du temps"><span class="ic">🗓️</span><span class="label">Emploi du temps</span></button>
       <button class="nav-item" data-panel="news" title="news"><span class="ic">📣</span><span class="label">Actualités</span></button>
       <button class="nav-item" data-panel="council" title="council"><span class="ic">🏛️</span><span class="label">Conseils de classe</span></button>
       <button class="nav-item" data-panel="requests" title="requests"><span class="ic">📮</span><span class="label">Demande au délégué</span><span class="nav-badge" id="requests-badge" style="display:none;"></span></button>
@@ -80,6 +89,7 @@
       <div class="scroll-body"><div id="council-form-slot"></div><div id="council-list"></div></div>
     </div>
 
+    <div class="panel" id="panel-schedule"><div class="scroll-body"><div class="schedule-intro"><div><span class="card-category">UNE SEMAINE BIEN ORGANISÉE</span><h2>Les cours, en un coup d’œil.</h2><p>Sélectionne un cours pour proposer un déplacement, une inversion ou une annulation au délégué.</p></div><label>Semaine<select id="schedule-period"><option value="all">Q1 et Q2</option value="Q1">Q1</option><option value="Q2">Q2</option></select></label></div><div class="info-banner">Une proposition ne modifie jamais le planning officiel. Latin et accompagnement aux devoirs dépendent de ton groupe ; les semaines et salles d’accompagnement sont à confirmer auprès de l’établissement.</div><div id="schedule-grid"></div></div></div>
     <div class="panel" id="panel-requests">
       <div class="scroll-body"><div id="requests-form-slot"></div><div id="requests-list"></div></div>
     </div>
@@ -94,5 +104,5 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
-<script src="app.js"></script>
+<dialog id="proposal-dialog"><form id="proposal-form"><button type="button" id="proposal-close" aria-label="Fermer">×</button><span class="card-category">UNE IDÉE POUR LE PLANNING</span><h2>Proposer un changement</h2><p id="proposal-course"></p><label for="proposal-action">Ta proposition</label><select id="proposal-action"><option>Déplacer un cours</option><option>Inverser deux cours</option><option>Demander une annulation</option></select><label for="proposal-date">Date du cours concerné</label><input id="proposal-date" type="date" required><div id="swap-field" hidden><label for="proposal-other">Cours à inverser (même semaine)</label><select id="proposal-other"></select></div><label for="proposal-reason">Pourquoi ? Quel créneau souhaites-tu ?</label><textarea id="proposal-reason" required maxlength="2000" rows="4"></textarea><p class="guest-note">Seuls toi et le délégué verrez cette proposition et les réponses. Le planning reste inchangé.</p><button class="btn-primary" id="proposal-send">Envoyer au délégué</button></form></dialog><script src="app.js"></script>
 </body></html>
