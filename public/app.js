@@ -486,7 +486,7 @@ const lessons=[
 function lessonLabel(l){return schoolDays[l.day]+' '+l.start+'–'+l.end+' · '+subjects[l.subject][0]+' · '+l.period;}
 function renderTimetable(){
   const period=document.getElementById('schedule-period').value;
-  document.getElementById('schedule-grid').innerHTML=schoolDays.map((day,i)=>'<section class="schedule-day"><h3>'+day+'</h3>'+lessons.filter(l=>l.day===i&&(period==='all'||l.period.includes(period))).map(l=>'<button class="lesson lesson-'+l.subject+'" data-lesson="'+l.id+'"><span class="lesson-time">'+l.start+' — '+l.end+'<em>'+l.period+'</em></span><strong>'+subjects[l.subject][0]+'</strong><span>'+subjects[l.subject][1]+'</span><small>'+subjects[l.subject][2]+(l.subject==='aide'?' · selon semaines':'')+'</small></button>').join('')+'</section>').join('');
+  document.getElementById('schedule-grid').innerHTML=schoolDays.map((day,i)=>'<section class="schedule-day"><h3>'+day+'</h3>'+lessons.filter(l=>l.day===i&&l.period.includes(period)).map(l=>'<button class="lesson lesson-'+l.subject+'" data-lesson="'+l.id+'"><span class="lesson-time">'+l.start+' — '+l.end+'<em>'+l.period+'</em></span><strong>'+subjects[l.subject][0]+'</strong><span>'+subjects[l.subject][1]+'</span><small>'+subjects[l.subject][2]+(l.subject==='aide'?' · selon semaines':'')+'</small></button>').join('')+'</section>').join('');
   document.querySelectorAll('#schedule-grid [data-lesson]').forEach(b=>b.onclick=()=>openProposal(Number(b.dataset.lesson)));
 }
 function openProposal(id){
