@@ -80,3 +80,7 @@ Les tests couvrent la conservation des brouillons après échec, le mode hors li
 - Le service serveur reste Firebase Authentication et Realtime Database avec règles de validation. Aucune API personnalisée Cloud Functions ni facturation Blaze activée. La configuration cliente Firebase est publique ; les droits sont contrôlés sur le serveur.
 - Métadonnées sociales, image PNG légère, favicon SVG, sitemap, page 404 et redirection HTTPS. Le robots.txt du sous-dossier ne remplace pas celui de la racine du domaine github.io.
 - 28 tests locaux : interface, consentement, liens et règles Firebase sur émulateur. Les tests n’écrivent pas de messages ou votes dans la production.
+
+## Thème spatial
+
+Le thème `public/space.css` couvre toutes les pages. `public/space-effects.js` anime les étoiles et fournit des icônes SVG. Les effets se mettent en pause lorsque l’onglet est caché et respectent la réduction des animations du système. Un bouton permet aussi de les suspendre. Aucune bibliothèque graphique ou donnée de compte n’est nécessaire aux effets.
