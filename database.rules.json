@@ -27,7 +27,7 @@
         "ts"
       ],
       "$id": {
-        ".write": "auth != null && root.child('users').child(auth.uid).exists() && !data.exists() && newData.exists()",
+        ".write": "auth != null && root.child('users').child(auth.uid).exists() && !data.exists() && newData.exists() && (!root.child('rateLimits').child(auth.uid).child('messages').child('ts').exists() || root.child('rateLimits').child(auth.uid).child('messages').child('ts').val() <= now - 2000) && newData.parent().parent().child('rateLimits').child(auth.uid).child('messages').child('id').val() === $id && newData.parent().parent().child('rateLimits').child(auth.uid).child('messages').child('ts').val() === now",
         ".validate": "newData.hasChildren(['from', 'displayName', 'text', 'ts'])",
         "from": {
           ".validate": "newData.val() === auth.uid"
@@ -52,7 +52,7 @@
         "ts"
       ],
       "$id": {
-        ".write": "auth != null && root.child('users').child(auth.uid).exists() && !data.exists() && newData.exists()",
+        ".write": "auth != null && root.child('users').child(auth.uid).exists() && !data.exists() && newData.exists() && (!root.child('rateLimits').child(auth.uid).child('news').child('ts').exists() || root.child('rateLimits').child(auth.uid).child('news').child('ts').val() <= now - 15000) && newData.parent().parent().child('rateLimits').child(auth.uid).child('news').child('id').val() === $id && newData.parent().parent().child('rateLimits').child(auth.uid).child('news').child('ts').val() === now",
         ".validate": "newData.hasChildren(['from', 'displayName', 'title', 'content', 'ts'])",
         "from": {
           ".validate": "newData.val() === auth.uid"
@@ -80,7 +80,7 @@
         "ts"
       ],
       "$id": {
-        ".write": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true && !data.exists() && newData.exists()",
+        ".write": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true && !data.exists() && newData.exists() && (!root.child('rateLimits').child(auth.uid).child('council').child('ts').exists() || root.child('rateLimits').child(auth.uid).child('council').child('ts').val() <= now - 15000) && newData.parent().parent().child('rateLimits').child(auth.uid).child('council').child('id').val() === $id && newData.parent().parent().child('rateLimits').child(auth.uid).child('council').child('ts').val() === now",
         ".validate": "newData.hasChildren(['from', 'displayName', 'title', 'content', 'ts'])",
         "from": {
           ".validate": "newData.val() === auth.uid"
@@ -108,7 +108,7 @@
         "ts"
       ],
       "$id": {
-        ".write": "auth != null && root.child('users').child(auth.uid).exists() && !data.exists() && newData.exists()",
+        ".write": false,
         ".validate": "newData.hasChildren(['from', 'displayName', 'text', 'ts', 'status'])",
         "from": {
           ".validate": "newData.val() === auth.uid"
@@ -140,7 +140,7 @@
             "ts"
           ],
           "$id": {
-            ".write": "auth != null && root.child('users').child(auth.uid).exists() && (auth.uid === $student || root.child('users').child(auth.uid).child('isAdmin').val() === true) && root.child('users').child($student).exists() && !data.exists() && newData.exists()",
+            ".write": "auth != null && root.child('users').child(auth.uid).exists() && (auth.uid === $student || root.child('users').child(auth.uid).child('isAdmin').val() === true) && root.child('users').child($student).exists() && !data.exists() && newData.exists() && (!root.child('rateLimits').child(auth.uid).child('private').child('ts').exists() || root.child('rateLimits').child(auth.uid).child('private').child('ts').val() <= now - 2000) && newData.parent().parent().parent().parent().child('rateLimits').child(auth.uid).child('private').child('id').val() === $id && newData.parent().parent().parent().parent().child('rateLimits').child(auth.uid).child('private').child('ts').val() === now",
             ".validate": "newData.hasChildren(['from', 'displayName', 'text', 'ts', 'kind'])",
             "from": {
               ".validate": "newData.val() === auth.uid"
@@ -160,6 +160,139 @@
             "kind": {
               ".validate": "newData.val() === 'message' || newData.val() === 'proposal'"
             }
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "polls": {
+      ".read": "auth != null && root.child('users').child(auth.uid).exists()",
+      "$poll": {
+        ".write": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true && !data.exists() && newData.exists() && !newData.child('votes').exists() && (!root.child('rateLimits').child(auth.uid).child('polls').child('ts').exists() || root.child('rateLimits').child(auth.uid).child('polls').child('ts').val() <= now - 30000) && newData.parent().parent().child('rateLimits').child(auth.uid).child('polls').child('id').val() === $poll && newData.parent().parent().child('rateLimits').child(auth.uid).child('polls').child('ts').val() === now",
+        ".validate": "newData.hasChildren(['question','options','from','displayName','ts','status'])",
+        "question": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 180"
+        },
+        "options": {
+          ".validate": "newData.hasChildren(['o0','o1'])",
+          "$option": {
+            ".validate": "$option.matches(/^o[0-5]$/) && newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
+          }
+        },
+        "from": {
+          ".validate": "newData.val() === auth.uid || data.val() === newData.val()"
+        },
+        "displayName": {
+          ".validate": "newData.val() === root.child('users').child(auth.uid).child('displayName').val() || data.val() === newData.val()"
+        },
+        "ts": {
+          ".validate": "newData.isNumber() && newData.val() <= now"
+        },
+        "status": {
+          ".write": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true && data.val() === 'open' && newData.val() === 'closed'",
+          ".validate": "(!data.exists() && newData.val() === 'open') || (data.exists() && (newData.val() === 'open' || newData.val() === 'closed'))"
+        },
+        "votes": {
+          "$uid": {
+            ".write": "auth != null && root.child('users').child(auth.uid).exists() && auth.uid === $uid && root.child('polls').child($poll).child('status').val() === 'open' && newData.exists()",
+            ".validate": "newData.isString() && root.child('polls').child($poll).child('options').child(newData.val()).exists()"
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "analytics": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && !newData.exists()",
+        "$day": {
+          ".write": "(auth != null && auth.uid === $uid && root.child('users').child(auth.uid).exists() && newData.exists()) || (auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true && !newData.exists())",
+          ".validate": "$day.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && newData.hasChildren(['count','lastAt','consent'])",
+          "count": {
+            ".validate": "newData.isNumber() && newData.val() <= 1000 && ((!data.exists() && newData.val() === 1) || newData.val() === data.val() + 1)"
+          },
+          "lastAt": {
+            ".validate": "newData.isNumber() && newData.val() === now"
+          },
+          "consent": {
+            ".validate": "newData.val() === true"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      }
+    },
+    "rateLimits": {
+      "$uid": {
+        "messages": {
+          ".write": "auth != null && auth.uid === $uid && root.child('users').child(auth.uid).exists() && newData.exists() && (!data.child('ts').exists() || data.child('ts').val() <= now - 2000)",
+          ".validate": "newData.hasChildren(['id','ts'])",
+          "id": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120"
+          },
+          "ts": {
+            ".validate": "newData.isNumber() && newData.val() === now"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "private": {
+          ".write": "auth != null && auth.uid === $uid && root.child('users').child(auth.uid).exists() && newData.exists() && (!data.child('ts').exists() || data.child('ts').val() <= now - 2000)",
+          ".validate": "newData.hasChildren(['id','ts'])",
+          "id": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120"
+          },
+          "ts": {
+            ".validate": "newData.isNumber() && newData.val() === now"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "news": {
+          ".write": "auth != null && auth.uid === $uid && root.child('users').child(auth.uid).exists() && newData.exists() && (!data.child('ts').exists() || data.child('ts').val() <= now - 15000)",
+          ".validate": "newData.hasChildren(['id','ts'])",
+          "id": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120"
+          },
+          "ts": {
+            ".validate": "newData.isNumber() && newData.val() === now"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "council": {
+          ".write": "auth != null && auth.uid === $uid && root.child('users').child(auth.uid).exists() && newData.exists() && (!data.child('ts').exists() || data.child('ts').val() <= now - 15000)",
+          ".validate": "newData.hasChildren(['id','ts'])",
+          "id": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120"
+          },
+          "ts": {
+            ".validate": "newData.isNumber() && newData.val() === now"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "polls": {
+          ".write": "auth != null && auth.uid === $uid && root.child('users').child(auth.uid).exists() && newData.exists() && (!data.child('ts').exists() || data.child('ts').val() <= now - 30000)",
+          ".validate": "newData.hasChildren(['id','ts'])",
+          "id": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120"
+          },
+          "ts": {
+            ".validate": "newData.isNumber() && newData.val() === now"
+          },
+          "$other": {
+            ".validate": false
           }
         },
         "$other": {

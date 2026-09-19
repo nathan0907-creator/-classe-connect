@@ -4,11 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ClasseConnect — La classe, ensemble.</title><meta name="description" content="Le point de rencontre de ta classe : discussions, actualités et échanges avec ton délégué."><meta name="theme-color" content="#6355df">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="base.css"><link rel="stylesheet" href="design.css">
-</head>
-<body>
+<link rel="stylesheet" href="site.css"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="canonical" href="https://nathan0907-creator.github.io/-classe-connect/"><meta name="referrer" content="strict-origin-when-cross-origin"><meta property="og:type" content="website"><meta property="og:locale" content="fr_FR"><meta property="og:title" content="ClasseConnect — La classe, ensemble"><meta property="og:description" content="Les discussions, le planning et les votes de ta classe, dans un même espace."><meta property="og:url" content="https://nathan0907-creator.github.io/-classe-connect/"><meta property="og:image" content="https://nathan0907-creator.github.io/-classe-connect/social.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="ClasseConnect : ta classe, vos idées, un même endroit. Logo violet sur fond clair."><meta name="twitter:card" content="summary_large_image"><script defer src="security.js"></script></head>
+<body><a class="skip-link" href="#main-content">Aller au contenu</a>
 
 <div id="toast-container" role="status" aria-live="polite"></div>
 
@@ -19,16 +18,16 @@
     <p class="auth-sub" id="auth-sub">Connecte-toi pour rejoindre la discussion de la classe.</p>
     <button id="show-guest" class="guest-choice">Continuer avec un pseudo <span>Sans adresse e-mail →</span></button>
     <div id="guest-form" class="auth-form" style="display:none;">
-      <div class="field"><label for="guest-name">Ton prénom / pseudo</label><input id="guest-name" type="text" maxlength="40" autocomplete="nickname" placeholder="Comment veux-tu qu’on t’appelle ?"></div>
+      <div class="field"><label for="guest-name">Ton prénom / pseudo</label><input id="guest-name" required type="text" maxlength="40" autocomplete="nickname" placeholder="Comment veux-tu qu’on t’appelle ?"></div>
       <p class="guest-note">Aucun e-mail nécessaire. Ton accès reste dans ce navigateur. Si tu te déconnectes ou effaces ses données, tu ne pourras pas retrouver ce compte avec ton pseudo seul.</p>
-      <div class="auth-error" role="alert" id="guest-error"></div>
+      <div class="auth-legal"><label><input type="checkbox" required id="guest-terms"><span>J’accepte les <a href="cgu.html" target="_blank" rel="noopener">CGU</a> et j’ai lu la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>.</span></label></div><div class="auth-error" role="alert" id="guest-error"></div>
       <button class="btn-primary" id="guest-btn">Rejoindre la classe sans e-mail</button>
       <div class="auth-switch"><button id="guest-to-email">Utiliser un compte avec e-mail</button></div>
     </div>
 
     <div id="login-form" class="auth-form">
-      <div class="field"><label for="login-email">Adresse e-mail</label><input id="login-email" type="email" autocomplete="username"></div>
-      <div class="field"><label for="login-password">Mot de passe</label><input id="login-password" type="password" autocomplete="current-password"></div>
+      <div class="field"><label for="login-email">Adresse e-mail</label><input id="login-email" required type="email" autocomplete="username"></div>
+      <div class="field"><label for="login-password">Mot de passe</label><input id="login-password" required type="password" autocomplete="current-password"></div>
       <button class="forgot-link" id="show-forgot">Mot de passe oublié ?</button>
       <div class="auth-error" role="alert" id="login-error"></div>
       <button class="btn-primary" id="login-btn">Se connecter</button>
@@ -36,42 +35,42 @@
     </div>
 
     <div id="signup-form" class="auth-form" style="display:none;">
-      <div class="field"><label for="signup-name">Ton prénom / pseudo</label><input id="signup-name" type="text" autocomplete="name"></div>
-      <div class="field"><label for="signup-email">Adresse e-mail</label><input id="signup-email" type="email" autocomplete="username"></div>
-      <div class="field"><label for="signup-password">Mot de passe</label><input id="signup-password" type="password" autocomplete="new-password"></div>
-      <div class="auth-error" role="alert" id="signup-error"></div>
+      <div class="field"><label for="signup-name">Ton prénom / pseudo</label><input id="signup-name" required type="text" autocomplete="name"></div>
+      <div class="field"><label for="signup-email">Adresse e-mail</label><input id="signup-email" required type="email" autocomplete="username"></div>
+      <div class="field"><label for="signup-password">Mot de passe</label><input id="signup-password" required minlength="6" type="password" autocomplete="new-password"></div>
+      <div class="auth-legal"><label><input type="checkbox" required id="signup-terms"><span>J’accepte les <a href="cgu.html" target="_blank" rel="noopener">CGU</a> et j’ai lu la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>.</span></label></div><div class="auth-error" role="alert" id="signup-error"></div>
       <button class="btn-primary" id="signup-btn">Créer mon compte</button>
       <div class="auth-switch">Déjà inscrit·e ? <button id="show-login">Se connecter</button></div>
     </div>
 
     <div id="forgot-form" class="auth-form" style="display:none;">
-      <div class="field"><label for="forgot-email">Adresse e-mail</label><input id="forgot-email" type="email" autocomplete="username"></div>
+      <div class="field"><label for="forgot-email">Adresse e-mail</label><input id="forgot-email" required type="email" autocomplete="username"></div>
       <div class="auth-error" role="alert" id="forgot-error"></div>
       <div class="auth-ok" id="forgot-ok"></div>
       <button class="btn-primary" id="forgot-btn">Recevoir un lien de réinitialisation</button>
       <div class="auth-switch"><button id="show-login-from-forgot">Retour à la connexion</button></div>
     </div>
-  </div><div class="auth-bottom"><button id="preview-btn">Découvrir l’espace <span>→</span></button><p>Un aperçu, sans créer de compte.</p></div></div></div>
+  </div><footer class="legal-footer"><a href="confidentialite.html">Confidentialité</a><a href="cgu.html">CGU</a><button type="button" data-cookie-settings>Cookies</button><a href="mailto:plantefevenathan@gmail.com">Contact</a></footer><div class="auth-bottom"><button id="preview-btn">Découvrir l’espace <span>→</span></button><p>Un aperçu, sans créer de compte.</p></div></div></div>
 <div id="app">
   <div class="sidebar">
     <div class="aurora" style="opacity:.5;"><span class="a1" style="width:60%;height:60%;"></span><span class="a2" style="width:55%;height:55%;"></span></div>
     <div class="brand"><span class="brand-mark">c<span>c</span></span><span class="logo-word">Classe</span><span class="logo-dot" style="font-family:'Fraunces',serif;">·</span><span class="logo-word">Connect</span></div>
     <div class="sidebar-caption">VOTRE ESPACE</div><nav class="nav-wrap" id="nav-wrap" aria-label="Navigation principale">
       <div id="nav-indicator"></div>
-      <button class="nav-item active" data-panel="chat" title="chat"><span class="ic">💬</span><span class="label">Discussion</span></button>
+      <button class="nav-item active" data-panel="chat" title="chat"><span class="ic">💬</span><span class="label">Discussion</span><span class="nav-badge" id="chat-badge" style="display:none"></span></button>
       <button class="nav-item" data-panel="schedule" title="Emploi du temps"><span class="ic">🗓️</span><span class="label">Emploi du temps</span></button>
       <button class="nav-item" data-panel="news" title="news"><span class="ic">📣</span><span class="label">Actualités</span></button>
       <button class="nav-item" data-panel="council" title="council"><span class="ic">🏛️</span><span class="label">Conseils de classe</span></button>
       <button class="nav-item" data-panel="requests" title="requests"><span class="ic">📮</span><span class="label">Demande au délégué</span><span class="nav-badge" id="requests-badge" style="display:none;"></span></button>
-      <button class="nav-item" data-panel="members" title="members"><span class="ic">👥</span><span class="label">Membres</span></button>
-    </nav><div class="sidebar-note"><span>✧</span><b>Une classe, une équipe.</b><p>Une question, une idée ?<br>La discussion commence ici.</p></div><div class="sidebar-footer">
+      <button class="nav-item" data-panel="polls" title="Votes"><span class="ic">🗳️</span><span class="label">Votes</span></button><button class="nav-item" data-panel="members" title="members"><span class="ic">👥</span><span class="label">Membres</span></button>
+    <button class="nav-item" data-panel="stats" hidden title="Statistiques"><span class="ic">📊</span><span class="label">Statistiques</span></button></nav><div class="sidebar-note"><span>✧</span><b>Une classe, une équipe.</b><p>Une question, une idée ?<br>La discussion commence ici.</p></div><div class="sidebar-footer">
       <div class="avatar" id="my-avatar"></div>
       <div class="whoami"><div class="name" id="my-name"></div><button class="out" id="logout-btn">Se déconnecter</button></div>
     </div>
   </div>
 
-  <div class="main">
-    <div class="workspace-bar"><span><b>Mon espace</b><span class="slash">/</span> Ma classe</span><span id="connection-status" role="status">Connexion…</span></div><div class="topbar"><span class="section-kicker">ON GARDE LE LIEN</span><h1 id="panel-title">Discussion de classe</h1><p id="panel-sub">Un seul fil, ouvert à tout le monde.</p></div>
+  <div class="main" id="main-content" tabindex="-1" role="main">
+    <div class="workspace-bar"><span><b>Mon espace</b><span class="slash">/</span> Ma classe</span><button id="notifications-button" aria-expanded="false" aria-controls="notification-settings" aria-label="Notifications">🔔 <span id="notification-count" role="status">Aucun nouveau message</span></button><span id="connection-status" role="status">Connexion…</span></div><div id="notification-settings" hidden><b>Notifications de messages</b><p>Les badges indiquent les messages non lus. Les alertes du navigateur fonctionnent tant que le site reste ouvert, y compris dans un autre onglet. Elles ne montrent pas le contenu des messages privés.</p><button id="browser-notifications">Activer les alertes du navigateur</button></div><footer class="legal-footer app-footer"><a href="confidentialite.html">Confidentialité</a><a href="cgu.html">CGU</a><button type="button" data-cookie-settings>Cookies</button><a href="mailto:plantefevenathan@gmail.com">Contact</a></footer><div class="topbar"><h1 id="panel-title">Discussion de classe</h1><p id="panel-sub">Un seul fil, ouvert à tout le monde.</p></div>
 
     <div class="panel active" id="panel-chat">
       <div class="chat-welcome"><span class="welcome-symbol">✳</span><div><b>Les bonnes idées commencent par un message.</b><p>Un coup de main, une question ou juste un bonjour ? À toi de jouer.</p></div><span class="welcome-decoration">↗</span></div><div class="chat-tools"><span><span class="channel-hash">#</span> général <small>· Toute la classe</small></span><label class="search-box"><span>⌕</span><input id="message-search" type="search" placeholder="Rechercher un message" aria-label="Rechercher un message"></label></div><div id="chat-messages" role="log" aria-live="polite" aria-label="Messages de la classe"></div>
@@ -94,15 +93,15 @@
       <div class="scroll-body"><div id="requests-form-slot"></div><div id="requests-list"></div></div>
     </div>
 
-    <div class="panel" id="panel-members">
+    <div class="panel" id="panel-polls"><div class="scroll-body"><div id="poll-form-slot"></div><div id="poll-list"></div></div></div><div class="panel" id="panel-stats"><div class="scroll-body"><div id="stats-content"></div></div></div><div class="panel" id="panel-members">
       <div class="scroll-body"><div class="members-grid" id="members-grid"></div></div>
     </div>
   </div>
 </div>
 
 
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
-<dialog id="proposal-dialog"><form id="proposal-form"><button type="button" id="proposal-close" aria-label="Fermer">×</button><span class="card-category">UNE IDÉE POUR LE PLANNING</span><h2>Proposer un changement</h2><p id="proposal-course"></p><label for="proposal-action">Ta proposition</label><select id="proposal-action"><option>Déplacer un cours</option><option>Inverser deux cours</option><option>Demander une annulation</option></select><label for="proposal-date">Date du cours concerné</label><input id="proposal-date" type="date" required><div id="swap-field" hidden><label for="proposal-other">Cours à inverser (même semaine)</label><select id="proposal-other"></select></div><label for="proposal-reason">Pourquoi ? Quel créneau souhaites-tu ?</label><textarea id="proposal-reason" required maxlength="2000" rows="4"></textarea><p class="guest-note">Seuls toi et le délégué verrez cette proposition et les réponses. Le planning reste inchangé.</p><button class="btn-primary" id="proposal-send">Envoyer au délégué</button></form></dialog><script src="app.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<dialog id="proposal-dialog"><form id="proposal-form"><button type="button" id="proposal-close" aria-label="Fermer">×</button><span class="card-category">UNE IDÉE POUR LE PLANNING</span><h2>Proposer un changement</h2><p id="proposal-course"></p><label for="proposal-action">Ta proposition</label><select id="proposal-action"><option>Déplacer un cours</option><option>Inverser deux cours</option><option>Demander une annulation</option></select><label for="proposal-date">Date du cours concerné</label><input id="proposal-date" type="date" required><div id="swap-field" hidden><label for="proposal-other">Cours à inverser (même semaine)</label><select id="proposal-other"></select></div><label for="proposal-reason">Pourquoi ? Quel créneau souhaites-tu ?</label><textarea id="proposal-reason" required maxlength="2000" rows="4"></textarea><p class="guest-note">Seuls toi et le délégué verrez cette proposition et les réponses. Le planning reste inchangé.</p><button class="btn-primary" id="proposal-send">Envoyer au délégué</button></form></dialog><script defer src="privacy.js"></script><script defer src="app.js"></script>
 </body></html>

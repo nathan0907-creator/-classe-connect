@@ -13,7 +13,7 @@ function setup(t,{offline=false,backend=true}={}){
  const snapshot=value=>({val:()=>value,exists:()=>value!==undefined&&value!==null});
  const get=p=>p.split('/').reduce((v,k)=>v?.[k],state.data);
  const sdkAuth={currentUser:null,onAuthStateChanged(cb){state.authCallback=cb;},async signInAnonymously(){const user=sdkAuth.currentUser||{uid:'guest',isAnonymous:true,async updateProfile(v){Object.assign(this,v);}};sdkAuth.currentUser=user;Promise.resolve().then(()=>state.authCallback(user));return {user};},async signOut(){sdkAuth.currentUser=null;await state.authCallback(null);}};
- const db={ref(p){const ref={path:p,callback:null,offCalled:false,limitToLast(){return this;},on(event,cb){this.callback=cb;cb(snapshot(p==='.info/connected'?!offline:get(p)));},off(){this.offCalled=true;},async once(){return snapshot(get(p));},async set(value){state.writes.push({path:p,value});if(state.fail)throw Object.assign(Error('permission denied'),{code:'PERMISSION_DENIED'});const keys=p.split('/');let parent=state.data;for(const k of keys.slice(0,-1))parent=parent[k]??={};parent[keys.at(-1)]=value;},async push(value){state.writes.push({path:p,value});if(state.fail)throw Error('permission denied');if(state.pending)await state.pending;return {key:'new'};}};state.refs.push(ref);return ref;}};
+ const db={ref(p=''){const ref={path:p,callback:null,offCalled:false,limitToLast(){return this;},on(event,cb){this.callback=cb;cb(snapshot(p==='.info/connected'?!offline:get(p)));},off(){this.offCalled=true;},async once(){return snapshot(get(p));},async set(value){state.writes.push({path:p,value});if(state.fail)throw Object.assign(Error('permission denied'),{code:'PERMISSION_DENIED'});const keys=p.split('/');let parent=state.data;for(const k of keys.slice(0,-1))parent=parent[k]??={};parent[keys.at(-1)]=value;},push(value){if(value===undefined)return {key:'new'};return (async()=>{state.writes.push({path:p,value});if(state.fail)throw Error('permission denied');if(state.pending)await state.pending;return {key:'new'};})();},async update(values){for(const [path,value] of Object.entries(values))if(!path.startsWith('rateLimits/'))state.writes.push({path:path.split('/').slice(0,-1).join('/'),value});if(state.fail)throw Error('permission denied');if(state.pending)await state.pending;}};state.refs.push(ref);return ref;}};
  if(backend)win.firebase={initializeApp(){},auth:()=>sdkAuth,database:Object.assign(()=>db,{ServerValue:{TIMESTAMP:123}})};
  win.eval(script);
  async function login(uid){sdkAuth.currentUser={uid,displayName:state.data.users[uid]?.displayName};await state.authCallback(sdkAuth.currentUser);}
@@ -94,10 +94,31 @@ test('delegate replies to the selected student and stale pending replies cannot 
  assert.equal(state.writes[0].path,'conversations/alice/messages');assert.equal(state.writes[0].value.from,'admin');assert.equal(doc.getElementById('private-input').value,'Nouveau texte');
 });
 test('pseudo-only registration creates an ordinary profile without an email',async t=>{
- const {doc,state}=setup(t);doc.getElementById('show-guest').click();doc.getElementById('guest-name').value='Camille';
+ const {doc,state}=setup(t);doc.getElementById('show-guest').click();doc.getElementById('guest-name').value='Camille';doc.getElementById('guest-terms').checked=true;
  await doc.getElementById('guest-btn').onclick();await new Promise(r=>setTimeout(r,0));
  assert.equal(state.data.users.guest.displayName,'Camille');assert.equal(state.data.users.guest.isAdmin,false);
  assert.equal(doc.getElementById('app').classList.contains('active'),true);
  assert.ok(state.refs.some(r=>r.path==='conversations/guest'));
+});
+test('new messages notify once, opening their panel clears unread badges',async t=>{
+ const {doc,state,login,snapshot}=setup(t);await login('alice');doc.querySelector('[data-panel="schedule"]').click();
+ const channel=state.refs.find(r=>r.path==='messages');const data={m:{from:'bob',displayName:'Bob',text:'Nouveau',ts:10}};channel.callback(snapshot(data));
+ assert.equal(doc.getElementById('chat-badge').textContent,'1');channel.callback(snapshot(data));assert.equal(doc.getElementById('chat-badge').textContent,'1');
+ assert.equal([...doc.querySelectorAll('.toast')].filter(x=>x.textContent==='Nouveau message dans la classe').length,1);
+ doc.querySelector('[data-panel="chat"]').click();assert.equal(doc.getElementById('chat-badge').style.display,'none');
+ await doc.getElementById('logout-btn').onclick();assert.equal(doc.title,'ClasseConnect — La classe, ensemble.');
+});
+test('private notifications count only authorized threads and reveal no message content',async t=>{
+ const {doc,state,login,snapshot}=setup(t);await login('alice');const channel=state.refs.find(r=>r.path==='conversations/alice');
+ channel.callback(snapshot({messages:{m:{from:'admin',displayName:'Délégué',text:'Secret personnel',ts:20}}}));
+ assert.equal(doc.getElementById('requests-badge').textContent,'1');assert.doesNotMatch(doc.getElementById('toast-container').textContent,/Secret personnel/);
+ doc.querySelector('[data-panel="requests"]').click();assert.equal(doc.getElementById('requests-badge').style.display,'none');
+});
+test('delegate can create a poll while ordinary members can vote only as themselves',async t=>{
+ const {doc,state,login}=setup(t);await login('admin');doc.getElementById('poll-question').value='Quel projet ?';doc.getElementById('poll-options').value='Sport\nMusique';
+ await doc.getElementById('poll-create').onsubmit({preventDefault(){}});assert.equal(state.writes.at(-1).path,'polls');assert.equal(state.writes.at(-1).value.options.o1,'Musique');
+ state.data.polls={p:{question:'Quel projet ?',options:{o0:'Sport',o1:'Musique'},from:'admin',displayName:'Délégué',ts:1,status:'open'}};
+ await login('alice');assert.equal(doc.getElementById('poll-create'),null);await doc.querySelector('.poll-choice').onclick();
+ assert.equal(state.writes.at(-1).path,'polls/p/votes/alice');assert.equal(state.writes.at(-1).value,'o0');
 });
 

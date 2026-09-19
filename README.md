@@ -4,9 +4,9 @@ Un espace de classe en français : discussion en temps réel, actualités, compt
 
 ## Publication sur GitHub Pages
 
-Le site se trouve dans `public/`. Le workflow `.github/workflows/pages.yml` publie ce dossier à chaque modification sur `main`. Une version HTML autonome à la racine permet aussi l’hébergement avec **Deploy from a branch → main → /(root)** : ce mode ouvre également l’application, et non le README.
+Le site se trouve dans `public/`. Le workflow `.github/workflows/pages.yml` publie ce dossier à chaque modification sur `main`. Une copie des pages et ressources à la racine permet aussi l’hébergement avec **Deploy from a branch → main → /(root)** : ce mode ouvre également l’application, et non le README.
 
-Après une modification de `public/`, exécuter `node export.cjs` et inclure `index.html` dans le commit. Cela synchronise l’entrée à la racine et génère le fichier téléchargeable `classe-connect-ameliore.html`.
+Après une modification de `public/`, exécuter `node export.cjs` et inclure toutes les ressources synchronisées à la racine dans le commit. Cela synchronise l’entrée à la racine et génère le fichier téléchargeable `classe-connect-ameliore.html`.
 
 1. Ouvrir [Settings → Pages](https://github.com/nathan0907-creator/-classe-connect/settings/pages).
 2. Dans **Build and deployment → Source**, choisir **GitHub Actions**.
@@ -69,3 +69,14 @@ pnpm test:rules
 Les tests des règles nécessitent Java 21 ou plus récent. Ils utilisent exclusivement `demo-classe-connect` et ne modifient pas les données du projet réel.
 
 Les tests couvrent la conservation des brouillons après échec, le mode hors ligne, les doubles envois, l’affichage du texte HTML, le nettoyage des sessions, la recherche, le refus de l’usurpation d’identité, les limites des messages, les droits du délégué et la confidentialité des demandes.
+
+## Votes, notifications et confidentialité
+
+- Le délégué crée et clôture des votes (2 à 6 choix). Une réponse par compte, modifiable tant que le vote est ouvert. Les votes ne sont pas anonymes.
+- Notifications et compteurs de messages non lus ; notifications système facultatives pendant que le site reste ouvert, sans texte des messages privés. Pas de push après fermeture.
+- Mesure interne des visites des comptes connectés, uniquement après consentement. Tableau de bord réservé au délégué. La suppression des statistiques de plus de 30 jours se lance manuellement dans ce tableau de bord.
+- Pages de confidentialité et CGU, contact personnel autorisé, choix de cookies modifiable, acceptation des conditions lors de la création de compte. Les demandes de droits et la revue de conservation en fin d’année restent à traiter par le responsable.
+- Limites serveur par compte : messages 2 secondes, actualités/conseils 15 secondes, création de votes 30 secondes. Cela ne bloque pas une personne qui recrée des comptes anonymes.
+- Le service serveur reste Firebase Authentication et Realtime Database avec règles de validation. Aucune API personnalisée Cloud Functions ni facturation Blaze activée. La configuration cliente Firebase est publique ; les droits sont contrôlés sur le serveur.
+- Métadonnées sociales, image PNG légère, favicon SVG, sitemap, page 404 et redirection HTTPS. Le robots.txt du sous-dossier ne remplace pas celui de la racine du domaine github.io.
+- 28 tests locaux : interface, consentement, liens et règles Firebase sur émulateur. Les tests n’écrivent pas de messages ou votes dans la production.

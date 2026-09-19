@@ -5,7 +5,7 @@
   "description": "ClasseConnect — La classe, ensemble.",
   "scripts": {
     "start": "node server.cjs",
-    "test": "node --test tests/app.test.cjs",
+    "test": "node --test tests/app.test.cjs tests/site.test.cjs",
     "test:rules": "firebase emulators:exec --only database --project demo-classe-connect \"node --test tests/rules.test.cjs\"",
     "check": "node --check public/app.js"
   },

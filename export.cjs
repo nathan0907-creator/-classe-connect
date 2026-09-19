@@ -1,10 +1,10 @@
-const fs=require('node:fs');
-const path=require('node:path');
-const read=file=>fs.readFileSync(path.join(__dirname,file),'utf8');
-let html=read('public/index.html');
-html=html.replace('<link rel="stylesheet" href="base.css"><link rel="stylesheet" href="design.css">',()=>'<style>'+read('public/base.css')+'\n'+read('public/design.css')+'</style>');
-html=html.replace('<script src="app.js"></script>',()=>'<script>'+read('public/app.js')+'</script>');
-fs.writeFileSync(path.join(__dirname,'classe-connect-ameliore.html'),html);
-// The root entry also supports Pages configured as main / (root).
-fs.writeFileSync(path.join(__dirname,'index.html'),html);
-console.log('Version HTML autonome créée.');
+const fs=require('node:fs'),path=require('node:path');
+const root=__dirname,source=path.join(root,'public');
+const html=fs.readFileSync(path.join(source,'index.html'),'utf8');
+// Keep independently cached assets in both GitHub Pages deployment modes.
+for(const entry of fs.readdirSync(source,{withFileTypes:true}))if(entry.isFile())fs.copyFileSync(path.join(source,entry.name),path.join(root,entry.name));
+let standalone=html.replace(/<link rel="stylesheet" href="([^"]+)">/g,(_,file)=>'<style>'+fs.readFileSync(path.join(source,file),'utf8')+'</style>');
+standalone=standalone.replace(/<script defer src="(security.js|privacy.js|app.js)"><\/script>/g,(_,file)=>'<script>'+fs.readFileSync(path.join(source,file),'utf8')+'</script>');
+standalone=standalone.replaceAll('<script defer src="https://www.gstatic.com','<script src="https://www.gstatic.com');
+fs.writeFileSync(path.join(root,'classe-connect-ameliore.html'),standalone);
+console.log('Pages et ressources synchronisées.');
